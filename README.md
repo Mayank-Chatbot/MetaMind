@@ -95,9 +95,6 @@ pip install -r requirements.txt
 # Copy .env.example to .env
 cp .env.example .env
 
-# Open .env and paste your Anthropic API key:
-ANTHROPIC_API_KEY=sk-ant-your-key-here
-```
 
 ### 6. Start the backend
 ```bash
