@@ -1,3 +1,15 @@
+---
+title: "MetaMind"
+emoji: "🤖"
+colorFrom: "blue"
+colorTo: "purple"
+sdk: docker
+sdk_version: "latest"
+python_version: "3.11"
+app_file: Dockerfile
+pinned: false
+---
+
 # MetaMind — Self-Improving AI Environment
 
 > An OpenEnv-compliant environment where AI agents improve their problem-solving strategy through iterative attempts using Contextual Bandit → Multi-Armed Bandit → Q-Learning.
