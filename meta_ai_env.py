@@ -6,7 +6,7 @@
 
 Setup:
   1. pip install -r requirements.txt
-  2. Copy .env.example → .env and add your ANTHROPIC_API_KEY
+  2. Set HF_TOKEN environment variable if needed (optional)
   3. uvicorn meta_ai_env:app --reload --port 8000
   4. Open index.html in your browser
 """
@@ -14,13 +14,14 @@ Setup:
 from __future__ import annotations
 import os, json, math, random, time, uuid
 from typing import Literal, Optional, List, Dict, Any
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-import anthropic
-from dotenv import load_dotenv
 
-load_dotenv()
+# from dotenv import load_dotenv
+
+# load_dotenv()
+from transformers import pipeline
 
 # ─────────────────────────────────────────────────────────────────
 # App Init
@@ -37,7 +38,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", "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"))
+# Initialize model with environment variables
+MODEL_NAME = os.getenv("MODEL_NAME", "google/flan-t5-small")
+HF_TOKEN = os.getenv("HF_TOKEN", "")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://api-inference.huggingface.co")
+
+generator = pipeline(
+    "text-generation",
+    model=MODEL_NAME,
+    use_auth_token=HF_TOKEN if HF_TOKEN else None,
+    api_base=API_BASE_URL
+)
+
 
 # ─────────────────────────────────────────────────────────────────
 # OpenEnv Typed Models
@@ -326,14 +338,18 @@ ql_agent  = QLearningAgent()
 # LLM Helpers
 # ─────────────────────────────────────────────────────────────────
 
+# def llm(system: str, user: str, max_tokens: int = 1200) -> str:
+#     msg = client.messages.create(
+#         model="claude-sonnet-4-20250514",
+#         max_tokens=max_tokens,
+#         system=system,
+#         messages=[{"role": "user", "content": user}],
+#     )
+#     return msg.content[0].text.strip()
 def llm(system: str, user: str, max_tokens: int = 1200) -> str:
-    msg = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=max_tokens,
-        system=system,
-        messages=[{"role": "user", "content": user}],
-    )
-    return msg.content[0].text.strip()
+    prompt = f"{system}\n\nTask: {user}"
+    result = generator(prompt, max_length=200, do_sample=False)
+    return result[0]['generated_text']
 
 
 def evaluate(response: str, task: str, level: str) -> Dict[str, Any]:
