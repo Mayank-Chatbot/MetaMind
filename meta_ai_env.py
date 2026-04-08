@@ -6,7 +6,7 @@
 
 Setup:
   1. pip install -r requirements.txt
-  2. Copy .env.example → .env and add your ANTHROPIC_API_KEY
+  2. Set HF_TOKEN environment variable if needed (optional)
   3. uvicorn meta_ai_env:app --reload --port 8000
   4. Open index.html in your browser
 """
