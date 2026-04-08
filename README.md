@@ -1,3 +1,15 @@
+---
+title: "MetaMind"
+emoji: "🤖"
+colorFrom: "blue"
+colorTo: "purple"
+sdk: docker
+sdk_version: "latest"
+python_version: "3.11"
+app_file: Dockerfile
+pinned: false
+---
+
 # MetaMind — Self-Improving AI Environment
 
 > An OpenEnv-compliant environment where AI agents improve their problem-solving strategy through iterative attempts using Contextual Bandit → Multi-Armed Bandit → Q-Learning.
@@ -83,9 +95,6 @@ pip install -r requirements.txt
 # Copy .env.example to .env
 cp .env.example .env
 
-# Open .env and paste your Anthropic API key:
-ANTHROPIC_API_KEY=sk-ant-your-key-here
-```
 
 ### 6. Start the backend
 ```bash
