@@ -17,11 +17,10 @@ from typing import Literal, Optional, List, Dict, Any
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-# import anthropic
-# from dotenv import load_dotenv
+import anthropic
+from dotenv import load_dotenv
 
-# load_dotenv()
-from transformers import pipeline
+load_dotenv()
 
 # ─────────────────────────────────────────────────────────────────
 # App Init
@@ -37,9 +36,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-generator = pipeline("text-generation", model="google/flan-t5-small")
 
-# client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", "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"))
 
 # ─────────────────────────────────────────────────────────────────
 # OpenEnv Typed Models
@@ -328,18 +326,14 @@ ql_agent  = QLearningAgent()
 # LLM Helpers
 # ─────────────────────────────────────────────────────────────────
 
-# def llm(system: str, user: str, max_tokens: int = 1200) -> str:
-#     msg = client.messages.create(
-#         model="claude-sonnet-4-20250514",
-#         max_tokens=max_tokens,
-#         system=system,
-#         messages=[{"role": "user", "content": user}],
-#     )
-#     return msg.content[0].text.strip()
 def llm(system: str, user: str, max_tokens: int = 1200) -> str:
-    prompt = f"{system}\n\nTask: {user}"
-    result = generator(prompt, max_length=200, do_sample=False)
-    return result[0]['generated_text']
+    msg = client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=max_tokens,
+        system=system,
+        messages=[{"role": "user", "content": user}],
+    )
+    return msg.content[0].text.strip()
 
 
 def evaluate(response: str, task: str, level: str) -> Dict[str, Any]:
@@ -434,10 +428,31 @@ def root():
     }
 
 
-@app.post("/reset")
+class ResetResponse(BaseModel):
+    status: str
+    run_id: str
+    task: str
+    observation: Observation
+
+
+@app.post("/reset", response_model=ResetResponse)
 def reset(req: ResetRequest):
     _env.reset(req.task)
-    return {"status": "ok", "run_id": _env.run_id, "task": _env.task}
+    initial_obs = Observation(
+        task=_env.task,
+        attempt_number=1,
+        algorithm=ALGORITHMS[ALGO_ORDER[0]]["name"],
+        level=ALGORITHMS[ALGO_ORDER[0]]["level"],
+        previous_score=None,
+        previous_response=None,
+        context={},
+    )
+    return ResetResponse(
+        status="ok",
+        run_id=_env.run_id,
+        task=_env.task,
+        observation=initial_obs,
+    )
 
 
 @app.get("/state")
