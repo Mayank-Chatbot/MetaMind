@@ -17,7 +17,7 @@ from typing import Literal, Optional, List, Dict, Any
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-# import anthropic
+
 # from dotenv import load_dotenv
 
 # load_dotenv()
@@ -37,9 +37,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-generator = pipeline("text-generation", model="google/flan-t5-small")
 
-# client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+# Initialize model with environment variables
+MODEL_NAME = os.getenv("MODEL_NAME", "google/flan-t5-small")
+HF_TOKEN = os.getenv("HF_TOKEN", "")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://api-inference.huggingface.co")
+
+generator = pipeline(
+    "text-generation",
+    model=MODEL_NAME,
+    use_auth_token=HF_TOKEN if HF_TOKEN else None,
+    api_base=API_BASE_URL
+)
+
 
 # ─────────────────────────────────────────────────────────────────
 # OpenEnv Typed Models
