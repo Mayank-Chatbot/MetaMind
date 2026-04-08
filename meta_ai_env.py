@@ -14,7 +14,7 @@ Setup:
 from __future__ import annotations
 import os, json, math, random, time, uuid
 from typing import Literal, Optional, List, Dict, Any
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -419,10 +419,10 @@ _env = Environment()
 # ─────────────────────────────────────────────────────────────────
 
 class ResetRequest(BaseModel):
-    task: str
+    task: Optional[str] = None
 
 class RunRequest(BaseModel):
-    task: str
+    task: Optional[str] = None
 
 # ─────────────────────────────────────────────────────────────────
 # OpenEnv API Endpoints
@@ -445,8 +445,9 @@ def root():
 
 
 @app.post("/reset")
-def reset(req: ResetRequest):
-    _env.reset(req.task)
+def reset(req: Optional[ResetRequest] = Body(None)):
+    task = req.task if req and req.task else "initialize task"
+    _env.reset(task)
     return {"status": "ok", "run_id": _env.run_id, "task": _env.task}
 
 
@@ -611,12 +612,13 @@ def step():
 
 
 @app.post("/run", response_model=RunResult)
-def run_full(req: RunRequest):
+def run_full(req: Optional[RunRequest] = Body(None)):
     """
     Run the full self-improvement pipeline in one call.
     Tries CB → MAB → QL, stopping when quality threshold is met.
     """
-    _env.reset(req.task)
+    task = req.task if req and req.task else "initialize task"
+    _env.reset(task)
     t0 = time.time()
     steps: List[StepResult] = []
 

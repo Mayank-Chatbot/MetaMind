@@ -125,6 +125,8 @@ Type a task and click **Run Pipeline →**
 | POST   | `/run`    | Run full pipeline (all 3 algorithms) |
 | GET    | `/agents` | Q-table, arm stats, CB values        |
 
+> Note: `POST /reset` accepts an empty JSON body and defaults to `"initialize task"` for OpenEnv validation compatibility.
+
 ### POST /run (recommended)
 ```bash
 curl -X POST http://localhost:8000/run \
